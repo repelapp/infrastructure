@@ -9,58 +9,6 @@ locals {
   s3_origin_id        = "repelapp-apex"
 }
 
-resource "aws_s3_bucket" "website-apex" {
-  bucket = local.domain
-  acl    = "public-read"
-
-  website {
-    redirect_all_requests_to = "https://www.${local.domain}"
-  }
-}
-
-resource "aws_cloudfront_distribution" "website-apex" {
-  enabled         = true
-  is_ipv6_enabled = true
-
-  origin {
-    domain_name = aws_s3_bucket.website-apex.bucket_domain_name
-    origin_id   = local.s3_origin_id
-  }
-
-  aliases = [
-    local.domain,
-  ]
-
-  restrictions {
-    geo_restriction {
-      restriction_type = "none"
-    }
-  }
-
-  viewer_certificate {
-    cloudfront_default_certificate = true
-  }
-
-  default_cache_behavior {
-    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = local.s3_origin_id
-
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
-    viewer_protocol_policy = "allow-all"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
-  }
-}
-
 # repelapp.de
 resource "aws_route53_record" "apex" {
   zone_id = data.aws_route53_zone.zone.zone_id
@@ -86,6 +34,17 @@ resource "aws_route53_record" "www" {
   ttl  = "300"
   records = [
     local.github_pages_domain,
+  ]
+}
+
+resource "aws_route53_record" "github_verify" {
+  zone_id = data.aws_route53_zone.zone.zone_id
+
+  name = "_github-challenge-repelapp.${data.aws_route53_zone.zone.name}"
+  type = "TXT"
+  ttl  = "300"
+  records = [
+    "ca27ec189f",
   ]
 }
 
