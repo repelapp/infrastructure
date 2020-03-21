@@ -23,7 +23,7 @@ resource "aws_cloudfront_distribution" "website-apex" {
   is_ipv6_enabled = true
 
   origin {
-    domain_name = aws_s3_bucket.website-apex.website_domain
+    domain_name = aws_s3_bucket.website-apex.bucket_domain_name
     origin_id   = local.s3_origin_id
   }
 
